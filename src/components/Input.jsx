@@ -1,9 +1,10 @@
 import React from "react";
 import axios from "axios";
 import Search from "./Search";
+import Map from "./Map";
 
-let token = process.env.REACT_APP_YELP.slice(0, -1);
-let geocodeKey = process.env.REACT_APP_GEOCODE.slice(0, -1);
+let token = process.env.REACT_APP_YELP;
+let geocodeKey = process.env.REACT_APP_GEOCODE;
 
 let config = {
   headers: {
@@ -20,7 +21,8 @@ class Input extends React.Component {
       location: {
         lat: "",
         long: ""
-      }
+      },
+       sushiLocations: []
     };
   }
 
@@ -37,15 +39,21 @@ class Input extends React.Component {
         `https://maps.googleapis.com/maps/api/geocode/json?address=${newLocation}&key=${geocodeKey}`
       )
     ])
-      .then(([res, response]) =>
+      .then(([res, response]) => {
+        let arr = res.data.businesses;
+        let newArr = []
+        arr.map(function(item, i) {
+          return newArr.push({lat: item.coordinates.latitude, lng: item.coordinates.longitude})
+         })
         this.setState({
           items: res.data.businesses,
           location: {
             lat: response.data.results[0].geometry.location.lat,
             long: response.data.results[0].geometry.location.lng
-          }
+          },
+          sushiLocations: newArr
         })
-      )
+      })
       .catch(err => console.log(err));
   };
 
@@ -58,8 +66,7 @@ class Input extends React.Component {
             <li key={i}>{item.name}</li>
           ))}
         </ul>
-        <p>User Lat: {this.state.location.lat}</p>
-        <p>User Long: {this.state.location.long}</p>
+        <Map latitude={this.state.location.lat} longitude={this.state.location.long} locations={this.state.sushiLocations}/>
       </div>
     );
   }
